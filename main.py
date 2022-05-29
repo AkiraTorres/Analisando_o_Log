@@ -6,87 +6,86 @@
 #   |       - José Gustavo de Oliveira Cunha                                                        |
 #   |       - José Thiago Torres da Silva                                                           |
 #   |       - João Victor Mendes de Lira                                                            |
-#   |       - Gabriel Valdormiro da Silva                                                           |
+#   |       - Gabriel Valdomiro da Silva                                                           |
 #   -------------------------------------------------------------------------------------------------
 #
 
-#Importação de bibliotecas
-import re 
+# Importação de bibliotecas
 import os
-
-def recursosGrandesRespondidos():
-
-    access_log = open('access.log', 'r')
-
-    for registros in access_log:
-        http_objeto_regex = re.compile(r'2\d\d [0-9]{4,9}')
-        http_objeto_ok = http_objeto_regex.findall(registros)
-
-        if http_objeto_ok and eval(http_objeto_ok[0][3::]) > 2000:
-            IP_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
-            dados_IP = IP_regex.findall(registros)
-
-            with open('./Análise/recursosGrandes.txt', 'a+') as recursosGrandes:
-                recursosGrandes.write(f'{http_objeto_ok[0]} {dados_IP[0]}\n')
-
-    access_log.close() 
-
-def requisicoesPorSistemaOperacional():
-
-    WindowsRegex = re.compile(r'Windows')
-    MacintoshRegex = re.compile(r'Macintosh')
-    LinuxRegex = re.compile(r'Linux')
-    x11Regex = re.compile(r'X11')
-    FedoraRegex = re.compile(r'Fedora')
-    AndroidRegex = re.compile(r'Android')
-    MobileRegex = re.compile(r'Mobile')
-
-    sistemasOperacionais = {
-
-            "Windows" : 0,
-            "Macintosh" : 0,
-            "Ubuntu" : 0,
-            "Fedora" : 0,
-            "Mobile" : 0,
-            "Linux, outros" : 0
-
-        }
-
-    access_log = open('access.log', 'r')
+import re
 
 
+def big_requests_answered():
+    log = open('access.log', 'r')
 
-    for registro in access_log:
-        SistemasOperacionaisAnoRegex = re.compile(r'\d\d/[A-Z][a-z][a-z]/2021:\d\d:\d\d:\d\d [+]\d\d\d\d')
-        http_objeto_ok = SistemasOperacionaisAnoRegex.findall(registro)
+    http_object_regex = re.compile(r'2\d\d \d{4,9}')
+    ip_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
 
-        if(http_objeto_ok):
+    for data in log:
+        http_object_ok = http_object_regex.findall(data)
 
-            if(MacintoshRegex.findall(registro)):
-                sistemasOperacionais["Macintosh"] += 1
-            elif(WindowsRegex.findall(registro)):
-                sistemasOperacionais["Windows"] += 1
-            elif(FedoraRegex.findall(registro)):
-                sistemasOperacionais["Fedora"] += 1
-            elif(AndroidRegex.findall(registro)):
-                sistemasOperacionais["Mobile"] += 1
-            elif(MobileRegex.findall(registro)):
-                sistemasOperacionais["Mobile"] += 1
-            elif(LinuxRegex.findall(registro)):
-                if(x11Regex.findall(registro)):
-                    sistemasOperacionais["Linux, outros"] += 1
+        if http_object_ok and eval(http_object_ok[0][3::]) > 2000:
+            dados_ip = ip_regex.findall(data)
+
+            with open('./Análise/recursosGrandes.txt', 'w+') as big_resources:
+                big_resources.write(f'{http_object_ok[0]} {dados_ip[0]}\n')
+
+    log.close()
+
+
+def requests_by_os():
+    windows_regex = re.compile(r'Windows')
+    macintosh_regex = re.compile(r'Macintosh')
+    linux_regex = re.compile(r'Linux')
+    x11_regex = re.compile(r'X11')
+    fedora_regex = re.compile(r'Fedora')
+    android_regex = re.compile(r'Android')
+    mobile_regex = re.compile(r'Mobile')
+
+    operational_systems = {
+
+        "Windows": 0,
+        "Macintosh": 0,
+        "Ubuntu": 0,
+        "Fedora": 0,
+        "Mobile": 0,
+        "Linux, outros": 0
+
+    }
+
+    log = open('access.log', 'r')
+
+    for data in log:
+        date_regex = re.compile(r'\d\d/[A-Z][a-z][a-z]/2021:\d\d:\d\d:\d\d [+]\d\d\d\d')
+        http_status = date_regex.findall(data)
+
+        if http_status:
+
+            if macintosh_regex.findall(data):
+                operational_systems["Macintosh"] += 1
+            elif windows_regex.findall(data):
+                operational_systems["Windows"] += 1
+            elif fedora_regex.findall(data):
+                operational_systems["Fedora"] += 1
+            elif android_regex.findall(data):
+                operational_systems["Mobile"] += 1
+            elif mobile_regex.findall(data):
+                operational_systems["Mobile"] += 1
+            elif linux_regex.findall(data):
+                if x11_regex.findall(data):
+                    operational_systems["Linux, outros"] += 1
                 else:
-                    sistemasOperacionais["Ubuntu"] += 1
+                    operational_systems["Ubuntu"] += 1
 
-    access_log.close() 
+    log.close()
 
-    aux = open("./Análise/sistemaOperacionais.txt", "w")
-    for sistema in sistemasOperacionais:
-        aux.write(f'{sistema} {(sistemasOperacionais[sistema]/1000000)*100}\n')
-    
+    aux = open("./Análise/sistemaOperacionais.txt", "w+")
+    for sistema in operational_systems:
+        aux.write(f'{sistema} {(operational_systems[sistema] / 1000000) * 100}\n')
 
-def media_requisicoes_post():
-    log = open('../access.log', 'r')
+
+def media_requests_post():
+    log = open('access.log', 'r')
 
     req_post_regex = re.compile(r'POST')
     date_regex = re.compile(r'2021')
@@ -105,77 +104,85 @@ def media_requisicoes_post():
             response_size_total += int(response_size[1])
 
     log.close()
-    print(f"Média das requisições POST de 2021 respondidas com sucesso: {response_size_total/total_responses}")
+    print(f"Média das requisições POST de 2021 respondidas com sucesso: {response_size_total / total_responses}")
 
-def naoRespondidos():
-    regexBadRequest = re.compile(r" 4\d\d ")
-    regexDate = re.compile(r"Nov/2021")
-    regexAddress = re.compile(r"(\"http://)(.*?)(\")")
+
+def not_answered_requests():
+    regex_bad_request = re.compile(r" 4\d\d ")
+    regex_date = re.compile(r"Nov/2021")
+    regex_address = re.compile(r"(\"http://)(.*?)(\")")
 
     log = open("access.log", "r")
 
     for data in log:
-        httpBadRequest = regexBadRequest.findall(data)
-        requestDate = regexDate.findall(data)
+        http_bad_request = regex_bad_request.findall(data)
+        request_date = regex_date.findall(data)
 
-        if httpBadRequest and requestDate:
-            requestAddress = regexAddress.findall(data)
-            response = ""
+        if http_bad_request and request_date:
+            request_address = regex_address.findall(data)
 
-            if requestAddress:
-                address = "".join(requestAddress[0])
+            if request_address:
+                address = "".join(request_address[0])
                 response = (
-                    httpBadRequest[0].strip() + " " + address + " " + requestDate[0] + "\n"
+                        http_bad_request[0].strip() + " " + address + " " + request_date[0] + "\n"
                 )
             else:
-                response = httpBadRequest[0].strip() + ' "-" ' + requestDate[0] + "\n"
+                response = http_bad_request[0].strip() + ' "-" ' + request_date[0] + "\n"
 
             with open(
-                "./Análise/naoRespondidosNovembro.txt", "a+"
-            ) as naoRespondidosNovembro:
-                naoRespondidosNovembro.write(response)
-
+                    "./Análise/naoRespondidosNovembro.txt", "w+"
+            ) as not_answered_nov:
+                not_answered_nov.write(response)
 
     log.close()
 
-def validarEntrada(valorDeEntrada):
-        while (True):
-            if(valorDeEntrada not in [0,1,2,3,4]):
-                print("Opção inválida, tente novamente")
-                valorDeEntrada = int(input("Digite novamente a opção desejada: "))
-            else:
-                return valorDeEntrada
 
-def criarPasta():
+def validate_input(input_value):
+    n = True
 
+    while n:
+        if input_value not in ["0", "1", "2", "3", "4"]:
+            print("Opção inválida, tente novamente")
+            input_value = input("Digite novamente a opção desejada: ")
+        else:
+            return input_value
+
+
+def create_dir():
     try:
         if "./Análise":
             os.makedirs("./Análise")
     except OSError:
         ...
 
-while (True):
 
-    print("""
-1 - Recursos grandes respondido
-2 - Não respondidos
-3 - "%" de requisições por SO
-4 - Média das requisições POST
-0 - Sair
+def menu():
+    n = True
 
-""")
+    while n:
+        print("""
+        1 - Recursos grandes respondido
+        2 - Não respondidos
+        3 - "%" de requisições por SO
+        4 - Média das requisições POST
+        0 - Sair
+        """)
 
-    criarPasta()
-    opcao = validarEntrada(int(input("Digite a opção desejada: ")))
+        create_dir()
+        input_value = validate_input(input("Digite a opção desejada: "))
 
-    match opcao:
-        case 1:
-            recursosGrandesRespondidos()
-        case 2:
-            naoRespondidos()
-        case 3:
-            requisicoesPorSistemaOperacional()
-        case 4:
-            media_requisicoes_post()
-        case 0:
-            break
+        match input_value:
+            case "1":
+                big_requests_answered()
+            case "2":
+                not_answered_requests()
+            case "3":
+                requests_by_os()
+            case "4":
+                media_requests_post()
+            case "0":
+                n = False
+
+
+if __name__ == '__main__':
+    menu()
