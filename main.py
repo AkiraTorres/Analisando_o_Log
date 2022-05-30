@@ -6,183 +6,192 @@
 #   |       - José Gustavo de Oliveira Cunha                                                        |
 #   |       - José Thiago Torres da Silva                                                           |
 #   |       - João Victor Mendes de Lira                                                            |
-#   |       - Gabriel Valdomiro da Silva                                                           |
+#   |       - Gabriel Valdormiro da Silva                                                           |
 #   -------------------------------------------------------------------------------------------------
 #
 
-# Importação de bibliotecas
+# Libraries Imports
+import re 
 import os
-import re
+# --------------------------------------
+
+# Tools
+data_2021_regex = re.compile(r'[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}')
+# --------------------------------------
 
 
-def big_requests_answered():
-    log = open('access.log', 'r')
+def input_validate(value):
 
-    http_object_regex = re.compile(r'2\d\d \d{4,9}')
-    ip_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
-
-    for data in log:
-        http_object_ok = http_object_regex.findall(data)
-
-        if http_object_ok and eval(http_object_ok[0][3::]) > 2000:
-            dados_ip = ip_regex.findall(data)
-
-            with open('./Análise/recursosGrandes.txt', 'w+') as big_resources:
-                big_resources.write(f'{http_object_ok[0]} {dados_ip[0]}\n')
-
-    log.close()
-
-
-def requests_by_os():
-    windows_regex = re.compile(r'Windows')
-    macintosh_regex = re.compile(r'Macintosh')
-    linux_regex = re.compile(r'Linux')
-    x11_regex = re.compile(r'X11')
-    fedora_regex = re.compile(r'Fedora')
-    android_regex = re.compile(r'Android')
-    mobile_regex = re.compile(r'Mobile')
-
-    operational_systems = {
-
-        "Windows": 0,
-        "Macintosh": 0,
-        "Ubuntu": 0,
-        "Fedora": 0,
-        "Mobile": 0,
-        "Linux, outros": 0
-
-    }
-
-    log = open('access.log', 'r')
-
-    for data in log:
-        date_regex = re.compile(r'\d\d/[A-Z][a-z][a-z]/2021:\d\d:\d\d:\d\d [+]\d\d\d\d')
-        http_status = date_regex.findall(data)
-
-        if http_status:
-
-            if macintosh_regex.findall(data):
-                operational_systems["Macintosh"] += 1
-            elif windows_regex.findall(data):
-                operational_systems["Windows"] += 1
-            elif fedora_regex.findall(data):
-                operational_systems["Fedora"] += 1
-            elif android_regex.findall(data):
-                operational_systems["Mobile"] += 1
-            elif mobile_regex.findall(data):
-                operational_systems["Mobile"] += 1
-            elif linux_regex.findall(data):
-                if x11_regex.findall(data):
-                    operational_systems["Linux, outros"] += 1
-                else:
-                    operational_systems["Ubuntu"] += 1
-
-    log.close()
-
-    aux = open("./Análise/sistemaOperacionais.txt", "w+")
-    for sistema in operational_systems:
-        aux.write(f'{sistema} {(operational_systems[sistema] / 1000000) * 100}\n')
-
-
-def media_requests_post():
-    log = open('access.log', 'r')
-
-    req_post_regex = re.compile(r'POST')
-    date_regex = re.compile(r'2021')
-
-    response_size_total = 0
-    total_responses = 0
-
-    for data in log:
-        date = date_regex.findall(data)
-        request = req_post_regex.findall(data)
-
-        if date and request:
-            total_responses += 1
-            response = data.split('"')
-            response_size = response[2].strip().split()
-            response_size_total += int(response_size[1])
-
-    log.close()
-    print(f"Média das requisições POST de 2021 respondidas com sucesso: {response_size_total / total_responses}")
-
-
-def not_answered_requests():
-    regex_bad_request = re.compile(r" 4\d\d ")
-    regex_date = re.compile(r"Nov/2021")
-    regex_address = re.compile(r"(\"http://)(.*?)(\")")
-
-    log = open("access.log", "r")
-
-    for data in log:
-        http_bad_request = regex_bad_request.findall(data)
-        request_date = regex_date.findall(data)
-
-        if http_bad_request and request_date:
-            request_address = regex_address.findall(data)
-
-            if request_address:
-                address = "".join(request_address[0])
-                response = (
-                        http_bad_request[0].strip() + " " + address + " " + request_date[0] + "\n"
-                )
-            else:
-                response = http_bad_request[0].strip() + ' "-" ' + request_date[0] + "\n"
-
-            with open(
-                    "./Análise/naoRespondidosNovembro.txt", "w+"
-            ) as not_answered_nov:
-                not_answered_nov.write(response)
-
-    log.close()
-
-
-def validate_input(input_value):
-    n = True
-
-    while n:
-        if input_value not in ["0", "1", "2", "3", "4"]:
-            print("Opção inválida, tente novamente")
-            input_value = input("Digite novamente a opção desejada: ")
+    while True:
+        if value.isnumeric() and eval(value) in [0,1,2,3,4]:
+            return eval(value)
         else:
-            return input_value
-
+            value  = input('Digite um valor válido: ')
 
 def create_dir():
+
     try:
         if "./Análise":
             os.makedirs("./Análise")
     except OSError:
         ...
 
+def requests_answered():
+
+    access_log = open('access.log', 'r')
+
+    for registry in access_log:
+        http_object_regex = re.compile(r'2\d\d [0-9]{4,9}')
+        http_object_regex_ok = http_object_regex.findall(registry)
+
+        if http_object_regex_ok and eval(http_object_regex_ok[0][3::]) > 2000:
+            IP_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
+            dados_IP = IP_regex.findall(registry)
+
+            with open('./Análise/recursosGrandes.txt', 'a+') as large_resources:
+                large_resources.write(f'{http_object_regex_ok[0]} {dados_IP[0]}\n')
+
+    access_log.close() 
+
+def naoRespondidos():
+    regexBadRequest = re.compile(r" 4\d\d ")
+    regexDate = re.compile(r"Nov/2021")
+    regexAddress = re.compile(r"(\"http://)(.*?)(\")")
+
+    log = open("access.log", "r")
+
+    for data in log:
+        httpBadRequest = regexBadRequest.findall(data)
+        requestDate = regexDate.findall(data)
+
+        if httpBadRequest and requestDate:
+            requestAddress = regexAddress.findall(data)
+            response = ""
+
+            if requestAddress:
+                address = "".join(requestAddress[0])
+                response = (
+                    httpBadRequest[0].strip() + " " + address + " " + requestDate[0] + "\n"
+                )
+            else:
+                response = httpBadRequest[0].strip() + ' "-" ' + requestDate[0] + "\n"
+
+            with open(
+                "./Análise/naoRespondidosNovembro.txt", "a+"
+            ) as naoRespondidosNovembro:
+                naoRespondidosNovembro.write(response)
+
+
+    log.close()
+
+def requests_by_operational_system():
+
+    def take_operational_system_percentage(operational_system_quantitative):
+        number_of_requests = 1000000
+        percentage = (operational_system_quantitative / number_of_requests) * 100
+        return percentage
+
+    access_log = open('access.log', 'r')
+
+    operational_systems = {
+        "Windows" : 0,
+        "Linux" : 0,
+        "Macintosh" : 0,
+    }
+
+    sub_linux_x11 = {
+        "Ubuntu" : 0,
+        "Fedora" : 0,
+    }
+
+    sub_linux_mobile = {
+        "Android" : 0,
+        "Mobile" : 0,
+    }
+
+    linux_and_others = 0
+
+    for registry in access_log:
+        if(re.findall(data_2021_regex, registry)):
+            for system in operational_systems:
+                if(system == "Linux"):
+                    if((re.compile(r'X11').findall(registry))):
+                        for sub_system in sub_linux_x11:
+                            if(sub_system in registry):
+                                sub_linux_x11[sub_system] += 1
+                            else:
+                                linux_and_others += 1
+                    elif(re.compile(fr"{system}; Android").findall(registry) or re.compile(r";Mobile;").findall(registry)):
+                        sub_linux_mobile["Mobile"] += 1
+                else:
+                    if(re.findall(fr'{system}', registry)):
+                        operational_systems[system] += 1
+    access_log.close()
+
+    table_of_percent = {
+
+        "Windows" : operational_systems["Windows"],
+        "Macintosh" : operational_systems["Macintosh"],
+        "Ubuntu" : sub_linux_x11["Ubuntu"],
+        "Fedora" : sub_linux_x11["Fedora"],
+        "Mobile" : sub_linux_mobile["Mobile"] + sub_linux_mobile["Android"],
+        "Linux, outros" : linux_and_others
+    }
+
+    aux = open("./Análise/sistemaOperacionais.txt", "w")
+    for line_content in table_of_percent:
+        aux.write(f'{line_content} {take_operational_system_percentage(table_of_percent[line_content])}\n')
+    
+
+def average_requests_post():
+    log = open('../access.log', 'r')
+
+    req_post_regex = re.compile(r'POST')
+
+    total_post_requests_with_success = 0
+    sum_of_all_post_requests_with_success_length = 0
+
+    for registry in log:
+        if((re.findall(data_2021_regex, registry)) and (req_post_regex.findall(registry))):
+            if(re.compile(r'2[0-9]{2} [0-9]{1,9}').findall(registry)):
+                total_post_requests_with_success += 1
+                response = registry.split('"')
+                state_and_length = response[2].strip().split()
+                sum_of_all_post_requests_with_success_length += int(state_and_length[1])
+
+    log.close()
+    average_of_all_post_requests_with_success = sum_of_all_post_requests_with_success_length / total_post_requests_with_success
+    print(f"Média das requisições POST de 2021 respondidas com sucesso: {average_of_all_post_requests_with_success}")
 
 def menu():
-    n = True
 
-    while n:
-        print("""
-        1 - Recursos grandes respondido
-        2 - Não respondidos
-        3 - "%" de requisições por SO
-        4 - Média das requisições POST
-        0 - Sair
-        """)
+    execution_Condition = True
+
+    while (execution_Condition):
+
+        menu_option = input_validate(input("""
+
+    1 - Recursos grandes respondido
+    2 - Não respondidos
+    3 - "%" de requisições por SO
+    4 - Média das requisições POST
+    0 - Sair
+
+    Digite a opção desejada: """))
 
         create_dir()
-        input_value = validate_input(input("Digite a opção desejada: "))
 
-        match input_value:
-            case "1":
-                big_requests_answered()
-            case "2":
-                not_answered_requests()
-            case "3":
-                requests_by_os()
-            case "4":
-                media_requests_post()
-            case "0":
-                n = False
-
+        match menu_option:
+            case 1:
+                requests_answered()
+            case 2:
+                naoRespondidos()
+            case 3:
+                requests_by_operational_system()
+            case 4:
+                average_requests_post()
+            case 0:
+                execution_Condition = False
 
 if __name__ == '__main__':
     menu()
