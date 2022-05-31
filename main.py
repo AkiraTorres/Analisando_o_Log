@@ -13,15 +13,15 @@
 # Libraries Imports
 import re 
 import os
+from urllib import response
 # --------------------------------------
 
 # Tools
 data_2021_regex = re.compile(r'[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}')
 # --------------------------------------
 
-
+# Auxiliary Functions
 def input_validate(input_value):
-
     while True:
         if (input_value.isnumeric() and eval(input_value) in [0,1,2,3,4]):
             return eval(input_value)
@@ -29,12 +29,18 @@ def input_validate(input_value):
             input_value  = input('Digite um valor válido: ')
 
 def create_dir():
-
     try:
         if "./Análise":
             os.makedirs("./Análise")
     except OSError:
         ...
+
+def write_to_file(file_name, content):
+    create_dir()
+    with open(file_name, 'a+') as file:
+        file.write(content)
+# --------------------------------------
+
 
 def requests_answered():
 
@@ -48,8 +54,8 @@ def requests_answered():
             IP_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
             dados_IP = IP_regex.findall(request)
 
-            with open('./Análise/recursosGrandes.txt', 'a+') as large_resources:
-                large_resources.write(f'{http_object_regex_ok[0]} {dados_IP[0]}\n')
+            response = (f'{http_object_regex_ok[0]} {dados_IP[0]}\n')
+            write_to_file("./Análise/respondidosNovembro.txt", response)
 
     access_log.close() 
 
@@ -75,11 +81,7 @@ def not_requests_answered():
                         http_bad_request[0].strip() + " " + address + " " + request_date[0] + "\n"
                     )
 
-            with open(
-                "./Análise/naoRespondidosNovembro.txt", "a+"
-            ) as nao_respondidos_novembro:
-                nao_respondidos_novembro.write(response)
-
+            write_to_file("./Análise/nãoRespondidosNovembro.txt", response)
 
     access_log.close()
 
@@ -136,9 +138,12 @@ def requests_by_operational_system():
         "Linux, outros" : linux_and_others
     }
 
-    aux = open("./Análise/sistemaOperacionais.txt", "w")
+    response = ""
+
     for line_content in table_of_percent:
-        aux.write(f'{line_content} {take_operational_system_percentage(table_of_percent[line_content])}\n')
+        response += (f'{line_content} {take_operational_system_percentage(table_of_percent[line_content])}\n')
+    
+    write_to_file("./Análise/requestsPorSistemaOperacional.txt", response)
     
 
 def average_requests_post():
@@ -174,8 +179,6 @@ def menu():
     4 - Média das requisições POST
     0 - Sair
     Digite a opção desejada: """))
-
-        create_dir()
 
         match menu_option:
             case 1:
