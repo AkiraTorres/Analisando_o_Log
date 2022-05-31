@@ -16,16 +16,17 @@ import os
 # --------------------------------------
 
 # Tools
-data_2021_regex = re.compile(r'[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}')
+data_2021_regex = re.compile(r"[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}")
 # --------------------------------------
 
 # Auxiliary Functions
 def input_validate(input_value):
     while True:
-        if (input_value.isnumeric() and eval(input_value) in [0,1,2,3,4]):
+        valid_inputs = [0,1,2,3,4]
+        if (input_value.isnumeric() and (eval(input_value) in valid_inputs)):
             return eval(input_value)
         else:
-            input_value  = input('Digite um valor válido: ')
+            input_value  = input("    Digite um valor válido: ")
 
 def create_dir():
     try:
@@ -40,17 +41,16 @@ def write_to_file(file_name, content, op):
         file.write(content)
 # --------------------------------------
 
-
 def requests_answered():
 
-    access_log = open('access.log', 'r')
+    access_log = open("access.log", "r")
 
     for request in access_log:
-        http_object_regex = re.compile(r'2\d\d [0-9]{4,9}')
+        http_object_regex = re.compile(r"2\d\d [0-9]{4,9}")
         http_object_regex_ok = http_object_regex.findall(request)
 
         if http_object_regex_ok and eval(http_object_regex_ok[0][3::]) > 2000:
-            ip_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
+            ip_regex = re.compile(r"\d*\.\d*\.\d*\.\d* ")
             dados_ip = ip_regex.findall(request)
 
             response = (f'{http_object_regex_ok[0]} {dados_ip[0]}\n')
@@ -60,7 +60,7 @@ def requests_answered():
 
 def not_requests_answered():
     regex_bad_request = re.compile(r" 4[0-9]{2} ")
-    regex_date = re.compile(r'[0-9]{2}/Nov/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}')
+    regex_date = re.compile(r"[0-9]{2}/Nov/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}")
     regex_address = re.compile(r"(\"http://)(.*?)(\")")
 
     access_log = open("access.log", "r")
@@ -87,11 +87,11 @@ def not_requests_answered():
 def requests_by_operational_system():
 
     def take_operational_system_percentage(operational_system_quantitative):
-        number_of_requests = len(os.popen('cat access.log').readlines()) 
+        number_of_requests = len(os.popen("cat access.log").readlines()) 
         percentage = (operational_system_quantitative / number_of_requests) * 100
         return percentage
 
-    access_log = open('access.log', 'r')
+    access_log = open("access.log", "r")
 
     operational_systems = {
         "Windows" : 0,
@@ -123,7 +123,7 @@ def requests_by_operational_system():
                     elif(re.compile(fr"{system}; Android").findall(request) or re.compile(r";Mobile;").findall(request)):
                         sub_linux_mobile["Mobile"] += 1
                 else:
-                    if(re.findall(fr'{system}', request)):
+                    if(re.findall(fr"{system}", request)):
                         operational_systems[system] += 1
     access_log.close()
 
@@ -146,9 +146,9 @@ def requests_by_operational_system():
     
 
 def average_requests_post():
-    access_log = open('../access.log', 'r')
+    access_log = open("../access.log", "r")
 
-    req_post_regex = re.compile(r'POST')
+    req_post_regex = re.compile(r"POST")
 
     total_post_requests_with_success = 0
     sum_of_all_post_requests_with_success_length = 0
