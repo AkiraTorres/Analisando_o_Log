@@ -13,7 +13,6 @@
 # Libraries Imports
 import re 
 import os
-from urllib import response
 # --------------------------------------
 
 # Tools
@@ -35,9 +34,9 @@ def create_dir():
     except OSError:
         ...
 
-def write_to_file(file_name, content):
+def write_to_file(file_name, content, op):
     create_dir()
-    with open(file_name, 'a+') as file:
+    with open(file_name, op) as file:
         file.write(content)
 # --------------------------------------
 
@@ -51,11 +50,11 @@ def requests_answered():
         http_object_regex_ok = http_object_regex.findall(request)
 
         if http_object_regex_ok and eval(http_object_regex_ok[0][3::]) > 2000:
-            IP_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
-            dados_IP = IP_regex.findall(request)
+            ip_regex = re.compile(r'\d*\.\d*\.\d*\.\d* ')
+            dados_ip = ip_regex.findall(request)
 
-            response = (f'{http_object_regex_ok[0]} {dados_IP[0]}\n')
-            write_to_file("./Análise/respondidosNovembro.txt", response)
+            response = (f'{http_object_regex_ok[0]} {dados_ip[0]}\n')
+            write_to_file("./Análise/respondidosNovembro.txt", response, "a+")
 
     access_log.close() 
 
@@ -81,7 +80,7 @@ def not_requests_answered():
                         http_bad_request[0].strip() + " " + address + " " + request_date[0] + "\n"
                     )
 
-            write_to_file("./Análise/nãoRespondidosNovembro.txt", response)
+            write_to_file("./Análise/nãoRespondidosNovembro.txt", response, "a+")
 
     access_log.close()
 
@@ -143,7 +142,7 @@ def requests_by_operational_system():
     for line_content in table_of_percent:
         response += (f'{line_content} {take_operational_system_percentage(table_of_percent[line_content])}\n')
     
-    write_to_file("./Análise/requestsPorSistemaOperacional.txt", response)
+    write_to_file("./Análise/requestsPorSistemaOperacional.txt", response, "w+")
     
 
 def average_requests_post():
