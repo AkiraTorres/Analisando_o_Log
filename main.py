@@ -13,11 +13,12 @@
 # Libraries Imports
 import re
 import os
+import sys
 import time
 
 # Tools
 date_2021_regex = re.compile(r"[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}")
-http_continue_status_regex = re.compile(r"2\d\d [0-9]{4,9}")
+http_continue_status_regex = re.compile(r"2\d\d [0-9]{1,9}")
 
 
 # Auxiliary Functions
@@ -46,9 +47,10 @@ def write_to_file(file_name, content, op):
 
 
 def clean():
-    if os.name == 'nt':
+    platform = sys.platform
+    if platform == 'win32':
         os.system('cls')
-    elif os.name == 'posix':
+    elif platform == 'linux' or platform == 'linux2':
         os.system('clear')
 
 
@@ -112,7 +114,7 @@ def requests_by_operational_system():
     print("Executando...")
 
     def take_operational_system_percentage(operational_system_quantitative):
-        number_of_requests = len(os.popen("cat access.log").readlines())
+        number_of_requests = 1000000
         percentage = (operational_system_quantitative / number_of_requests) * 100
         return percentage
 
@@ -183,7 +185,6 @@ def average_requests_post():
     total_post_requests_with_success = 0
     sum_of_all_post_requests_with_success_length = 0
 
-
     for request in access_log:
         http_status_data = http_continue_status_regex.findall(request)
         if re.findall(date_2021_regex, request) and req_post_regex.findall(request) and http_status_data:
@@ -200,8 +201,8 @@ def average_requests_post():
 
 
 def menu():
-    execution_Condition = True
-    while (execution_Condition):
+    execution_condition = True
+    while execution_condition:
         menu_option = input_validate(input("""1 - Recursos grandes respondidos
 2 - Não respondidos
 3 - "%" de requisições por SO
@@ -219,7 +220,7 @@ Digite a opção desejada: """))
             case 4:
                 average_requests_post()
             case 0:
-                execution_Condition = False
+                execution_condition = False
 
 
 if __name__ == '__main__':
