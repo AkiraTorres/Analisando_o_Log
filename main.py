@@ -6,7 +6,7 @@
 #   |       - José Gustavo de Oliveira Cunha                                                        |
 #   |       - José Thiago Torres da Silva                                                           |
 #   |       - João Victor Mendes de Lira                                                            |
-#   |       - Gabriel Valdormiro da Silva                                                           |
+#   |       - Gabriel Valdomiro da Silva                                                           |
 #   -------------------------------------------------------------------------------------------------
 #
 
@@ -17,11 +17,13 @@ import time
 
 # Tools
 date_2021_regex = re.compile(r"[0-9]{2}/[A-Z][a-z]{2}/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}")
+http_continue_status_regex = re.compile(r"2\d\d [0-9]{4,9}")
 
 
 # Auxiliary Functions
 def input_validate(input_value):
-    while True:
+    condition = True
+    while condition:
         valid_inputs = [0, 1, 2, 3, 4]
         if input_value.isnumeric() and (eval(input_value) in valid_inputs):
             return eval(input_value)
@@ -43,30 +45,40 @@ def write_to_file(file_name, content, op):
         file.writelines(content)
 
 
+def clean():
+    if os.name == 'nt':
+        os.system('cls')
+    elif os.name == 'posix':
+        os.system('clear')
+
+
 def big_requests_answered():
     initial_time = time.time()
+    print("Executando...")
 
-    http_object_regex = re.compile(r"2\d\d [0-9]{4,9}")
     ip_regex = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
     response = []
 
     access_log = open("access.log", "r")
 
     for request in access_log:
-        http_object_regex_ok = http_object_regex.findall(request)
+        http_continue_status_regex_ok = http_continue_status_regex.findall(request)
 
-        if http_object_regex_ok and eval(http_object_regex_ok[0][3::]) > 2000:
+        if http_continue_status_regex_ok and eval(http_continue_status_regex_ok[0][3::]) > 2000:
             ip_data = ip_regex.findall(request)
 
-            response.append(http_object_regex_ok[0] + ip_data[0] + '\n')
+            response.append(http_continue_status_regex_ok[0] + ip_data[0] + '\n')
 
     write_to_file('./Análise/recursosGrandes.txt', response, 'w+')
-    print(f"Tempo de Execução {time.time() - initial_time:.2f}")
+    clean()
+    print(f"Tempo de Execução {time.time() - initial_time:.2f}\n")
     access_log.close()
 
 
 def not_answered_requests():
     initial_time = time.time()
+    print("Executando...")
+
     regex_bad_request = re.compile(r" 4[0-9]{2} ")
     regex_date = re.compile(r"[0-9]{2}/Nov/2021:[0-9]{2}:[0-9]{2}:[0-9]{2} [+][0-9]{4}")
     regex_address = re.compile(r"(\"http://)(.*?)(\")")
@@ -90,12 +102,15 @@ def not_answered_requests():
 
     
     write_to_file("./Análise/nãoRespondidosNovembro.txt", response, "w+")
-    print(f"Tempo de Execução {time.time() - initial_time:.2f}")
+    clean()
+    print(f"Tempo de Execução {time.time() - initial_time:.2f}\n")
     access_log.close()
 
 
 def requests_by_operational_system():
     initial_time = time.time()
+    print("Executando...")
+
     def take_operational_system_percentage(operational_system_quantitative):
         number_of_requests = len(os.popen("cat access.log").readlines())
         percentage = (operational_system_quantitative / number_of_requests) * 100
@@ -153,12 +168,14 @@ def requests_by_operational_system():
     for line_content in table_of_percent:
         response += (f'{line_content} {take_operational_system_percentage(table_of_percent[line_content])}\n')
 
-    print(f"Tempo de Execução {time.time() - initial_time:.2f}")
+    clean()
+    print(f"Tempo de Execução {time.time() - initial_time:.2f}\n")
     write_to_file("./Análise/requestsPorSistemaOperacional.txt", response, "w+")
 
 
 def average_requests_post():
     initial_time = time.time()
+    print("Executando...")
     access_log = open("./access.log", "r")
 
     req_post_regex = re.compile(r"POST")
@@ -166,27 +183,26 @@ def average_requests_post():
     total_post_requests_with_success = 0
     sum_of_all_post_requests_with_success_length = 0
 
-    for request in access_log:
-        if ((re.findall(date_2021_regex, request)) and (req_post_regex.findall(request))):
-            if (re.compile(r'2[0-9]{2} [0-9]{1,9}').findall(request)):
-                total_post_requests_with_success += 1
-                response = request.split('"')
-                state_and_length = response[2].strip().split()
-                sum_of_all_post_requests_with_success_length += int(state_and_length[1])
 
-    print(f"Tempo de Execução {time.time() - initial_time:.2f}")
+    for request in access_log:
+        http_status_data = http_continue_status_regex.findall(request)
+        if re.findall(date_2021_regex, request) and req_post_regex.findall(request) and http_status_data:
+            total_post_requests_with_success += 1
+            response = request.split('"')
+            http_status, request_size = http_status_data[0].split()
+            sum_of_all_post_requests_with_success_length += int(request_size)
+
+    clean()
+    print(f"Tempo de Execução {time.time() - initial_time:.2f}\n")
     access_log.close()
     average_of_all_post_requests_with_success = sum_of_all_post_requests_with_success_length / total_post_requests_with_success
-    print(f"Média das requisições POST de 2021 respondidas com sucesso: {average_of_all_post_requests_with_success}")
+    print(f"Média das requisições POST de 2021 respondidas com sucesso: {average_of_all_post_requests_with_success:.2f}")
 
 
 def menu():
     execution_Condition = True
-
     while (execution_Condition):
-
-        menu_option = input_validate(input("""
-1 - Recursos grandes respondidos
+        menu_option = input_validate(input("""1 - Recursos grandes respondidos
 2 - Não respondidos
 3 - "%" de requisições por SO
 4 - Média das requisições POST
