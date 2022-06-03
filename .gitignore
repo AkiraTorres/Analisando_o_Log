@@ -1,0 +1,4 @@
+*.log
+/Análise
+.idea
+/.vscode
